@@ -50,7 +50,7 @@ const userSchema = new Schema({
         required: [true  , "profile image is required"],
     },
 
-    vehicles: [{
+    vehicle: [{
     make: {
       type: String,
       required: [true, 'Vehicle make is required'],
