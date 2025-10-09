@@ -6,6 +6,7 @@ const stationSchema = new Schema(
       type: String,
       required: [true, "Station name is required"],
       trim: true,
+      unique: true,
     },
     description: {
       type: String,

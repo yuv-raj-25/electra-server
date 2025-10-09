@@ -1,8 +1,8 @@
 import {User} from "../models/user.model.js";
-import {asyncHandler} from "express-async-handler";
-import {ApiError} from "../utils/apiError.js";
-import {ApiResponse} from "../utils/apiResponse.js";
-import {uploadOnCloudinary} from "../utils/cloudinary.js";
+import {asyncHandler} from "../utility/asyncHandler.js";
+import {ApiError} from "../utility/ApiError.js";
+import {ApiResponse} from "../utility/ApiResponse.js";
+import {uploadOnCloudinary} from "../utility/cloudinary.js";
 import jwt from "jsonwebtoken";
 
 
@@ -25,26 +25,26 @@ const generateAccessTokenAndRefreshToken = async(userId) => {
 
 // register user  controllers
 const registerUser = asyncHandler(async (req , res)=> {
-    const {userName , email , password , profileImage, vehicle} = req.body;
+    const {userName , email , password , vehicle} = req.body;
 
     if(
         [userName , email , password].some((field) => field.trim() === "")
     ){
         throw new ApiError(401 , "All the fields are required")
     }
-    if (
-  !vehicle ||
-  !vehicle.make ||
-  !vehicle.model ||
-  !vehicle.year ||
-  !vehicle.licensePlate ||
-  vehicle.make.trim() === "" ||
-  vehicle.model.trim() === "" ||
-  vehicle.year.toString().trim() === "" ||
-  vehicle.licensePlate.trim() === ""
-) {
-  throw new ApiError(401, "All the vehicle fields (make, model, year, licensePlate) are required");
-}
+//     if (
+//   !vehicle ||
+//   !vehicle.make ||
+//   !vehicle.model ||
+//   !vehicle.year ||
+//   !vehicle.licensePlate ||
+//   vehicle.make.trim() === "" ||
+//   vehicle.model.trim() === "" ||
+//   vehicle.year.toString().trim() === "" ||
+//   vehicle.licensePlate.trim() === ""
+// ) {
+//   throw new ApiError(401, "All the vehicle fields (make, model, year, licensePlate) are required");
+// }
         // if(isNaN(vehicle.year) || vehicle.year < 1886 || vehicle.year > new Date().getFullYear() + 1) {
         //     throw new ApiError(401, "Please provide a valid vehicle year");
         // }
@@ -72,11 +72,11 @@ const registerUser = asyncHandler(async (req , res)=> {
     }
 
     const user = await User.create({
-        username: userName.toLowerCase(),
+        userName: userName.toLowerCase(),
         email,
         password,
         profileImage: uploadedProfileImage.secure_url,
-        vehicle
+        // vehicle
     })
     const createdUser = await User.findById(user._id).select(
     "-password -refreshToken"
@@ -90,6 +90,27 @@ const registerUser = asyncHandler(async (req , res)=> {
   )
 
 })
+const assignRole = asyncHandler(async (req , res)=> {
+
+  const { userId, role } = req.body;
+  // Only allow valid roles
+    if (!["admin", "user"].includes(role)) {
+      throw new ApiError(400, "Invalid role specified");
+    }
+    // Find and update user
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { role },
+      { new: true, runValidators: true }
+    );
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+    const updatedUser = await User.findById(user._id).select("-password -refreshToken");
+    return res.status(200).json(
+      new ApiResponse(200, updatedUser, "User role updated successfully")
+    );
+});
 
 
 // login the user controllers
@@ -99,6 +120,7 @@ const loginUser = asyncHandler(async (req , res) => {
     if ((!userName && !email) || !password) {
          throw new ApiError(400, "Username/email and password are required");
     }
+    // console.log(userName, email);
     const user = await User.findOne({
         $or: [{ userName: userName?.toLowerCase() }, { email }],
     });
@@ -311,5 +333,6 @@ export {
     changeCurrentPassword,
     getCurrentUser,
     refreshAccessToken,
-    changeProfileImage
+    changeProfileImage,
+    assignRole
 }

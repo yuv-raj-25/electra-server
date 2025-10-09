@@ -15,12 +15,25 @@ app.use(express.static('public'));
 app.use(cookieParser());
 
 
+app.get("/" , (req, res) => {
+    res.send("Welcome to Electra API")
+})
 
 // routes 
 
-import { userRouter } from './routes/user.routes.js';
+import  userRouter  from './routes/user.routes.js';
+import stationRouter from './routes/station.routes.js';
+// import adminActivityRouter from './routes/adminActivity.routes.js';
 
-app.use("/api/v1/users" , userRouter);
+
+// user routes
+app.use("/api/v2/users" , userRouter);
+
+// station routes
+app.use("/api/v2/stations" , stationRouter);
+
+// admin activity routes
+// app.use("/api/v2/admin/activities" , adminActivityRouter);
 
 
 

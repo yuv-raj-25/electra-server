@@ -1,6 +1,7 @@
-import {Schema , model} from "mongoose";
+import mongoose ,  {Schema , model} from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+
 
 
 const userSchema = new Schema({
@@ -27,13 +28,13 @@ const userSchema = new Schema({
     password: {
         type: String,
         required: [true , "password is required "],
-        validate: {
-            validator: function (password){
-                return strongPasswordRegex.test(password)
-            },
-            message: props => 
-            `Password must be at least 8 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character.`
-        }
+        // validate: {
+        //     validator: function (password){
+        //         return strongPasswordRegex.test(password)
+        //     },
+        //     message: props => 
+        //     `Password must be at least 8 characters long, and include at least one uppercase letter, one lowercase letter, one number, and one special character.`
+        // }
         
     },
     phoneNumber: {
@@ -44,7 +45,12 @@ const userSchema = new Schema({
       validator: (v) => /^[6-9]\d{9}$/.test(v),
       message: "Invalid Indian phone number",
     },
-  },
+    },
+    role:{
+      type: String,
+      enum: ["user", "admin"],
+      default: "user", // Normal users by default
+    },
     profileImage:{
         type: String, // cloudinary url
         required: [true  , "profile image is required"],
@@ -53,21 +59,21 @@ const userSchema = new Schema({
     vehicle: [{
     make: {
       type: String,
-      required: [true, 'Vehicle make is required'],
+      // required: [true, 'Vehicle make is required'],
       trim: true,
       // e.g., Tesla, BMW, Audi, Nissan, Chevrolet, Hyundai
     },
     
     model: {
       type: String,
-      required: [true, 'Vehicle model is required'],
+      // required: [true, 'Vehicle model is required'],
       trim: true,
       // e.g., Model 3, Model S, i4, e-tron, Leaf, Bolt EV, Kona Electric
     },
     
     year: {
       type: Number,
-      required: [true, 'Vehicle year is required'],
+      // required: [true, 'Vehicle year is required'],
       min: [2010, 'Year must be 2010 or later'],
       max: [new Date().getFullYear() + 1, 'Year cannot be in the future']
     },
@@ -83,7 +89,7 @@ const userSchema = new Schema({
     }, 
     licensePlate: {
       type: String,
-      required: [true, 'License plate is required'],
+      // required: [true, 'License plate is required'],
       unique: true,
       uppercase: true,
       trim: true,
@@ -115,6 +121,7 @@ const userSchema = new Schema({
       type: Date,
       default: Date.now
     }
+
   }],
    refreshToken:{
         type: String
@@ -130,13 +137,15 @@ userSchema.pre("save" , async function(next){
 })
 
 userSchema.methods.isPasswordCorrect = async function(password){
+  //  console.log("Plain password:", password);
+  // console.log("Hashed password:", this.password);
     return await bcrypt.compare(password , this.password);
 }
 
 
 userSchema.methods.generateAccessToken = function(){
 
-    jwt.sign(
+    return jwt.sign(
         {
             _id: this._id,
             email: this.email,
