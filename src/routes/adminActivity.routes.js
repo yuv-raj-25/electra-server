@@ -1,29 +1,29 @@
-// import express from 'express';
-// import { authorize } from '../middleware/auth.middleware.js';
+import express from 'express';
+import { authorize } from '../middleware/auth.middleware.js';
 
 
-// import {
-//   getAdminActivities,
-//   getActivityStatistics,
-//   getTargetHistory
-// } from '../controllers/adminActivity.controller.js';
+import {
+  getAdminActivities,
+  getActivityStatistics,
+  getTargetHistory
+} from '../controllers/adminActivity.controller.js';
 
 
 
-// const router = express.Router();
+const router = express.Router();
 
 
-// // Protect all routes
-// router.use(authorize);
-// router.use(isAdmin);
+// Protect all routes
+router.use(authorize);
+router.use(isAdmin);
 
-// // Get all activities
-// router.get('/', getAdminActivities);
+// Get all activities
+router.get('/', getAdminActivities);
 
-// // Get statistics
-// router.get('/statistics', getActivityStatistics);
+// Get statistics
+router.get('/statistics', getActivityStatistics);
 
-// // Get history for specific target
-// router.get('/:targetModel/:targetId/history', getTargetHistory);
+// Get history for specific target
+router.get('/:targetModel/:targetId/history', getTargetHistory);
 
-// export default router;
+export default router;

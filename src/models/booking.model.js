@@ -12,6 +12,10 @@ const bookingSchema = new Schema(
       ref: "Station",
       required: true,
     },
+    plugType: {
+      type: String,
+      trim: true,
+    },
     startTime: {
       type: Date,
       required: true,
@@ -19,6 +23,9 @@ const bookingSchema = new Schema(
     endTime: {
       type: Date,
       required: true,
+    },
+    vehicle: {
+      type: Schema.Types.Mixed,
     },
     duration: {
       type: Number,
