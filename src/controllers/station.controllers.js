@@ -3,6 +3,7 @@ import {Station} from "../models/station.model.js";
 import {ApiError} from "../utility/ApiError.js";
 import {ApiResponse} from "../utility/ApiResponse.js";
 import mongoose from "mongoose";
+import { Booking } from "../models/booking.model.js";
 
 
 // Create a station controller  
@@ -78,14 +79,6 @@ const updateStation = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Station not found");
   }
 
-  // Authorization check
-  const isOwner = station.ownerID.toString() === req.user._id.toString();
-  const isAdmin = req.user.hasPermission('manage-stations');
-    if (!isOwner && !isAdmin) {
-    throw new ApiError(403, "You don't have permission to update this station");
-  }
-
-
   //  Prevent duplicate name or address
   if (updateData.name || (updateData.location && updateData.location.address)) {
     const existingStation = await Station.findOne({
@@ -136,15 +129,9 @@ const deleteStation = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Station not found");
   }
 
-  // Authorization check
-  // If your middleware doesn't already handle this:
-  if (req.user.role !== "admin") {
-    throw new ApiError(403, "You are not authorized to delete stations");
-  }
-
   // Check for dependencies smart
   // if bookings exist for this station, prevent deletion
-  const existingBookings = await Booking.find({ station: stationId });
+  const existingBookings = await Booking.find({ stationID: stationId });
   if (existingBookings.length > 0) {
     throw new ApiError(
       400,
