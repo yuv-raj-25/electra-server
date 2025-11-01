@@ -265,6 +265,14 @@ const completeChargingSession = asyncHandler(async (req, res) => {
 		await booking.save();
 	}
 
+		const station = await Station.findById(session.stationId);
+		if (station) {
+			const currentPorts = typeof station.availablePorts === "number" ? station.availablePorts : 0;
+			const capacity = typeof station.capacity === "number" ? station.capacity : currentPorts;
+			station.availablePorts = Math.min(currentPorts + 1, capacity ?? currentPorts + 1);
+			await station.save();
+		}
+
 	return res
 		.status(200)
 		.json(new ApiResponse(200, session, "Charging session completed successfully"));

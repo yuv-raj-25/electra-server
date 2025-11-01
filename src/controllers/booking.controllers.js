@@ -40,7 +40,13 @@ const createBooking = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Selected plug type not available at this station");
     }
 
-    if (typeof station.availablePorts === "number" && station.availablePorts <= 0) {
+    const availablePorts = typeof station.availablePorts === "number"
+        ? station.availablePorts
+        : typeof station.capacity === "number"
+            ? station.capacity
+            : 0;
+
+    if (availablePorts <= 0) {
         throw new ApiError(400, "No available charging ports at this station");
     }
 
@@ -94,6 +100,9 @@ const createBooking = asyncHandler(async (req, res) => {
         },
     });
 
+    station.availablePorts = availablePorts - 1;
+    await station.save();
+
     return res
         .status(201)
         .json(new ApiResponse(201, booking, "Booking created successfully"));
@@ -128,6 +137,14 @@ const cancelBooking = asyncHandler(async (req, res) => {
     };
 
     await booking.save();
+
+    const station = await Station.findById(booking.stationID);
+    if (station) {
+        const currentPorts = typeof station.availablePorts === "number" ? station.availablePorts : 0;
+        const capacity = typeof station.capacity === "number" ? station.capacity : currentPorts;
+        station.availablePorts = Math.min(currentPorts + 1, capacity ?? currentPorts + 1);
+        await station.save();
+    }
 
     return res.status(200).json(new ApiResponse(200, booking, "Booking cancelled successfully"));
 });
